@@ -7,35 +7,43 @@
 #include <tuple>
 using namespace std;
 
+
+//herlper function
+
+void print_A(vector<vector<int>> A) {
+    for (int i = 0; i < A.size(); i++) {
+        for (int j = 0; j < A[i].size(); j++) {
+            cout << A[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
 //Problem 1
 
-//Brute force O(m * n^2)
+//Brute force O(m * n^2) WORKS
 void Alg1(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day) {
     //set m number of stocks with n number of days
     int m = A.size();
     int n = A[0].size();
     cout << "In algorithm 1 Brute force" << endl;
-    //cout << "Vector size: " << m << "x" << n << endl;
     int profit = 0;
 
     //for each stock initialize the profit to 0 and loop through the rows
     for (int i = 0; i < m; i++) {
-        int sell = 1;
         int buy = 0;
-        //loop through the columns and find the maximum value
-        for (int j = 1; j < n; j++) {
-            if (A[i][j] >= A[i][sell]) {
-                sell = j;
-                //in the column find the minimum value before the position of the maximum value
-                for (int k = 0; k < sell; k++) {
-                    if (A[i][k] < A[i][buy]) {
-                        buy = k;
-                    }
+        int sell = 0;
+        int current_profit = A[i][1] - A[i][0];
+
+        for (int j = 0; j < n; j++){
+            for (int k = j + 1; k < n; k++){
+                if (A[i][k] - A[i][j] > current_profit) {
+                    current_profit = A[i][k] - A[i][j];
+                    buy = j;
+                    sell = k;
                 }
             }
         }
-        //if the current row's max profit is the highest profit update profit value and note row position
-        int current_profit = A[i][sell] - A[i][buy];
+
         if (current_profit > profit) {
             profit = current_profit;
             *stock = i;
@@ -43,114 +51,24 @@ void Alg1(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day) {
             *sell_day = sell;
         }
     }
+    return;
 }
 
-//Greedy O(m*n) find min and then find max val after the min
+//Greedy O(m*n) WORKS
 void Alg2(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day) {
-    //set m number of stocks with n number of days
     int m = A.size();
     int n = A[0].size();
     cout << "In algorithm 2 Greedy approach" << endl;
-    //cout << "Vector size: " << m << "x" << n << endl;
-    int profit = 0;
-
-    //for each stock initialize the profit to 0 and loop through the rows
-    for (int i = 0; i < m; i++) {
-        int sell = 1;
-        int buy = 0;
-
-        //loop through the columns
-        for (int j = 1; j < n; j++) {
-            //find the minimum value
-            if (A[i][j] < A[i][buy]) {
-                buy = j;
-            }
-        }
-
-        for (int k = buy; k < n; k++) {
-            //in the column find the maximum value after the position of the minimum value
-            if (A[i][k] > A[i][sell]) {
-                sell = k;
-            }
-        }
-
-        //if the current row's max profit is the highest profit update profit value and note row position
-        int current_profit = A[i][sell] - A[i][buy];
-        if (current_profit > profit) {
-            profit = current_profit;
-            *stock = i;
-            *buy_day = buy;
-            *sell_day = sell;
-
-        }
-    }
-}
-
-//DP w/ Memo
-void Alg3a(vector<vector<int>> A, int* stock, int* buy_day, int* sell_day) {
-    int m = A.size();
-    int n = A[0].size();
-    cout << "In algorithm 3A Dynamic programming with memoization" << endl;
-    //allocate the arrays 
-    int** dp = new int* [m];
-    for (int i = 0; i < m; i++)
-        dp[i] = new int[n]{0};
 
     int profit = 0;
     for (int i = 0; i < m; i++) {
-        int max = -10000000;
-        int min = 10000000;
-        int buy = 0;
-        int sell = 0;
-        for (int j = 1; j < n; j++) {
-            dp[i][j] = dp[i][j - 1] + A[i][j] - A[i][j - 1];
-        }
 
-        for (int j = 0; j < n; j++) {
-            if (dp[i][j] > max) {
-                sell = j;
-                max = dp[i][j];
-            }
-
-            if (dp[i][j] < min && j < sell) {
-                buy = j;
-                min = dp[i][j];
-            }
-            //for visualization
-            //cout << dp[i][j] << " ";
-        }
-
-        if (dp[i][sell] - dp[i][buy] > profit) {
-            profit = dp[i][sell] - dp[i][buy];
-            *stock = i;
-            *buy_day = buy;
-            *sell_day = sell;
-        }
-        //for visualization
-        //cout << endl;
-    }
-    
-    //deallocate the arrays
-    for (int i = 0; i < m; i++)
-        delete[] dp[i];
-    delete[] dp;
-}
-
-//DP Bottom up 
-void Alg3b(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day) {
-    int m = A.size();
-    int n = A[0].size();
-    cout << "In algorithm 3B Dynamic programming with bottom up approach" << endl;
-
-    int profit = 0;
-    for (int i = 0; i < m; i++) {
-  
         int buy = 0;
         int sell_pos = 0;
         int buy_pos = 0;
         int max_diff = A[i][1] - A[i][0];
 
-        for (int j = 1; j < n; j++){
+        for (int j = 1; j < n; j++) {
 
             if (A[i][j] - A[i][buy] > max_diff) {
                 buy_pos = buy;
@@ -162,7 +80,7 @@ void Alg3b(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day) {
                 buy = j;
             }
         }
-       
+
         if (max_diff > profit) {
             profit = max_diff;
             *stock = i;
@@ -171,6 +89,116 @@ void Alg3b(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day) {
         }
     }
     return;
+}
+
+//DP w/ Memo
+void Alg3a(vector<vector<int>> A, int* stock, int* buy_day, int* sell_day) {
+    int m = A.size();
+    int n = A[0].size();
+    cout << "In algorithm 3A Dynamic programming with memoization" << endl;
+    //allocate the arrays
+    int** dp = new int* [m];
+    for (int i = 0; i < m; i++)
+        dp[i] = new int[n-1]{0};
+
+    int max_profit = 0;
+
+    for (int i = 0; i < m; i++) {
+        //fill it with differences
+        for (int j = 0; j < n - 1; j++) {
+            dp[i][j] = A[i][j + 1] - A[i][j];
+        }
+
+        int profit = dp[i][0];
+        int buy = 0;
+        int sell = 1;
+        int count = 0;
+
+        //find maximum sum subarray 
+        //cout << dp[i][0] << " ";
+        for (int j = 1; j < n - 1; j++) {
+
+            if (dp[i][j - 1] > 0) {
+                dp[i][j] += dp[i][j - 1];
+                count += 1;
+            }
+            else {
+                count = 0;
+            }
+
+            if (dp[i][j] > profit) {
+                profit = dp[i][j];
+                sell = j+1;
+                buy = sell - count - 1;
+            }
+            
+        }
+    
+        if (profit > max_profit) {
+            max_profit = profit;
+            //cout << "Max profit: " << max_profit << endl;
+            *stock = i;
+            *buy_day = buy;
+            *sell_day = sell;
+        }
+    }
+    
+    //deallocate array
+    for (int i = 0; i < m; i++)
+        delete[] dp[i];
+    delete[] dp;
+}
+
+//DP Bottom UP 
+void Alg3b(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day) {
+    //set m number of stocks with n number of days
+    int m = A.size();
+    int n = A[0].size();
+    //cout << "In 3B DP approach" << endl;
+    int profit = 0;
+
+    for (int i = 0; i < m; i++) {
+        int sell = 0;
+        int buy = 0;
+        // Initialize diff, current sum and max sum
+        int diff = A[i][1] - A[i][0];
+        int curr_sum = diff;
+        int max_sum = curr_sum;
+        int count = 0;
+
+        for (int j = 1; j < n - 1; j++) {
+            if (A[i][j] != -1) {
+
+                // Calculate current diff
+                diff = A[i][j + 1] - A[i][j];
+
+                // Calculate current sum
+                if (curr_sum > 0) {
+                    curr_sum += diff;
+                    count += 1;
+                }
+                else {
+                    curr_sum = diff;
+                    count = 0;
+                }
+
+                // Update max sum, if needed
+                if (curr_sum > max_sum) {
+                    max_sum = curr_sum;
+                    sell = j + 1;
+                    buy = sell - count - 1;
+                }
+            }
+        }
+
+        //if the current row's max profit is the highest profit update profit value and note row position
+        if (max_sum > profit) {
+            profit = max_sum;
+            *stock = i;
+            *buy_day = buy;
+            *sell_day = sell;
+        }
+    }
 }
 
 
@@ -243,15 +271,27 @@ void Alg4(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day, int k
 }
 
 
-void Alg5(vector<vector<int>>& A, int k) {
+void Alg5(vector<vector<int>> A, int k) {
+    cout << "In algo 5" << endl;
     int m = A.size();
     int n = A[0].size();
     int stock = -1;
     int buy_day = 0;
     int sell_day = 1;
+    while (k > 0 ) {
+        if (sell_day == 0)
+            break;
+        Alg3b(A, &stock, &buy_day, &sell_day);
+        cout << stock << " " << buy_day << " " << sell_day << endl;
+        //update the A matrix
+        A[stock][buy_day] = 0;
+        A[stock][sell_day] = 0;
+        for (int i = buy_day+1; i <= sell_day-1; i++)
+            A[stock][i] = 0;
 
-    //Alg3b(A, &stock, &buy_day, &sell_day);
-    //cout << stock << " " << buy_day << " " << sell_day << endl;
+        print_A(A);
+        k = k - 1;
+    }
     return;
 }
 
@@ -539,6 +579,10 @@ int main() {
     stock = -1;
     buy_day = 0;
     sell_day = 1;
+    Alg5(B, 2);
+    stock = -1;
+    buy_day = 0;
+    sell_day = 1;
     cout << "algos on C" << endl;
     Alg1(C, &stock, &buy_day, &sell_day);
     cout << stock << " " << buy_day << " " << sell_day << endl;
@@ -561,6 +605,10 @@ int main() {
     buy_day = 0;
     sell_day = 1;
     //Alg4(C, &stock, &buy_day, &sell_day, 2);
+    Alg5(C, 2);
+    stock = -1;
+    buy_day = 0;
+    sell_day = 1;
 
 
     cout << endl << "NOW TESTING P1 WITH READ FILE FUNCTION AND RANDOMLY GENERATED VALUES 5 by 10" << endl;
@@ -587,8 +635,8 @@ int main() {
         cout << stock << " " << buy_day << " " << sell_day << endl;
         Alg2(P1_10_20, &stock, &buy_day, &sell_day);
         cout << stock << " " << buy_day << " " << sell_day << endl;
-        //Alg3a(P1_10_20, &stock, &buy_day, &sell_day);
-        //cout << stock << " " << buy_day << " " << sell_day << endl;
+        Alg3a(P1_10_20, &stock, &buy_day, &sell_day);
+        cout << stock << " " << buy_day << " " << sell_day << endl;
         Alg3b(P1_10_20, &stock, &buy_day, &sell_day);
         cout << stock << " " << buy_day << " " << sell_day << endl;
     }
