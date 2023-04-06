@@ -8,7 +8,7 @@
 using namespace std;
 
 
-//herlper function
+///helper functions
 
 void print_A(vector<vector<int>> A) {
     for (int i = 0; i < A.size(); i++) {
@@ -63,6 +63,7 @@ void problem_one_create_file(string filename, int m, int n) {
     }
 }
 
+//------------------------------------------------------------------------------------------------------------
 
 ///Problem 1
 
@@ -217,7 +218,6 @@ void Alg2(string filename) {
     cout << stock << ", " << buy_day << ", " << sell_day << endl;
     return;
 }
-
 
 //DP w/ Memo
 void Alg3a(vector<vector<int>> A, int* stock, int* buy_day, int* sell_day) {
@@ -395,10 +395,68 @@ void Alg3b(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day) {
     }
 }
 
+//DP Bottom UP LINUX WAY
+void Alg3b(string filename) {
+    vector<vector<int>> A = problem_one_file_to_vec(filename);
+    //set m number of stocks with n number of days
+    int m = A.size();
+    int n = A[0].size();
+    //cout << "In 3B DP approach" << endl;
+    int profit = 0;
+    int stock = -1;
+    int buy_day = -1;
+    int sell_day = -1;
 
+    for (int i = 0; i < m; i++) {
+        int sell = 0;
+        int buy = 0;
+        // Initialize diff, current sum and max sum
+        int diff = A[i][1] - A[i][0];
+        int curr_sum = diff;
+        int max_sum = curr_sum;
+        int count = 0;
+
+        for (int j = 1; j < n - 1; j++) {
+            if (A[i][j] != -1) {
+
+                // Calculate current diff
+                diff = A[i][j + 1] - A[i][j];
+
+                // Calculate current sum
+                if (curr_sum > 0) {
+                    curr_sum += diff;
+                    count += 1;
+                }
+                else {
+                    curr_sum = diff;
+                    count = 0;
+                }
+
+                // Update max sum, if needed
+                if (curr_sum > max_sum) {
+                    max_sum = curr_sum;
+                    sell = j + 1;
+                    buy = sell - count - 1;
+                }
+            }
+        }
+
+        //if the current row's max profit is the highest profit update profit value and note row position
+        if (max_sum > profit) {
+            profit = max_sum;
+            stock = i;
+            buy_day = buy;
+            sell_day = sell;
+        }
+    }
+    cout << stock << ", " << buy_day << ", " << sell_day << endl;
+
+    return;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
 /// Part 2 
-
 vector<vector<int>> getSubsets(vector<int>& nums, int k) {
     vector<vector<int>> res;
     sort(nums.begin(), nums.end());
