@@ -18,7 +18,53 @@ void print_A(vector<vector<int>> A) {
         cout << endl;
     }
 }
-//Problem 1
+
+vector<vector<int>> problem_one_file_to_vec(string filename) {
+    ifstream infile(filename);
+    vector<vector<int>> result;
+    string line;
+    int m, n;
+
+    // Read the first line to get m and n
+    getline(infile, line);
+    istringstream iss(line);
+    iss >> m >> n;
+
+    // Read each of the next m lines to get the n integers in each row
+    for (int i = 0; i < m; i++) {
+        vector<int> row;
+        getline(infile, line);
+        istringstream iss(line);
+        for (int j = 0; j < n; j++) {
+            int val;
+            iss >> val;
+            row.push_back(val);
+        }
+        result.push_back(row);
+    }
+
+    return result;
+}
+
+void problem_one_create_file(string filename, int m, int n) {
+    ofstream outfile(filename);
+    outfile << m << " " << n << endl;
+
+    // Generate and write m lines of n random integers each
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> dist(1, 10000);
+
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            outfile << dist(gen) << " ";
+        }
+        outfile << std::endl;
+    }
+}
+
+
+///Problem 1
 
 //Brute force O(m * n^2) WORKS
 void Alg1(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day) {
@@ -34,8 +80,8 @@ void Alg1(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day) {
         int sell = 0;
         int current_profit = A[i][1] - A[i][0];
 
-        for (int j = 0; j < n; j++){
-            for (int k = j + 1; k < n; k++){
+        for (int j = 0; j < n; j++) {
+            for (int k = j + 1; k < n; k++) {
                 if (A[i][k] - A[i][j] > current_profit) {
                     current_profit = A[i][k] - A[i][j];
                     buy = j;
@@ -54,7 +100,46 @@ void Alg1(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day) {
     return;
 }
 
-//Greedy O(m*n) WORKS
+//Brute force O(m * n^2) LINUX way
+void Alg1(string filename) {
+    //set m number of stocks with n number of days
+    vector<vector<int>> A = problem_one_file_to_vec(filename);
+    int m = A.size();
+    int n = A[0].size();
+    cout << "In algorithm 1 Brute force" << endl;
+    int profit = 0;
+    int stock = -1;
+    int buy_day = -1;
+    int sell_day = -1;
+
+    //for each stock initialize the profit to 0 and loop through the rows
+    for (int i = 0; i < m; i++) {
+        int buy = 0;
+        int sell = 0;
+        int current_profit = A[i][1] - A[i][0];
+
+        for (int j = 0; j < n; j++) {
+            for (int k = j + 1; k < n; k++) {
+                if (A[i][k] - A[i][j] > current_profit) {
+                    current_profit = A[i][k] - A[i][j];
+                    buy = j;
+                    sell = k;
+                }
+            }
+        }
+
+        if (current_profit > profit) {
+            profit = current_profit;
+            stock = i;
+            buy_day = buy;
+            sell_day = sell;
+        }
+    }
+    cout << stock << ", " << buy_day << ", " << sell_day << endl;
+    return;
+}
+
+//Greedy O(m*n)
 void Alg2(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day) {
     int m = A.size();
     int n = A[0].size();
@@ -91,6 +176,49 @@ void Alg2(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day) {
     return;
 }
 
+//Greedy O(m*n) LINUX WAY
+void Alg2(string filename) {
+    vector<vector<int>> A = problem_one_file_to_vec(filename);
+    int m = A.size();
+    int n = A[0].size();
+    cout << "In algorithm 2 Greedy approach" << endl;
+    int profit = 0;
+    int stock = -1;
+    int buy_day = -1;
+    int sell_day = -1;
+
+    for (int i = 0; i < m; i++) {
+
+        int buy = 0;
+        int sell_pos = 0;
+        int buy_pos = 0;
+        int max_diff = A[i][1] - A[i][0];
+
+        for (int j = 1; j < n; j++) {
+
+            if (A[i][j] - A[i][buy] > max_diff) {
+                buy_pos = buy;
+                max_diff = A[i][j] - A[i][buy_pos];
+                sell_pos = j;
+            }
+
+            if (A[i][j] < A[i][buy]) {
+                buy = j;
+            }
+        }
+
+        if (max_diff > profit) {
+            profit = max_diff;
+            stock = i;
+            buy_day = buy_pos;
+            sell_day = sell_pos;
+        }
+    }
+    cout << stock << ", " << buy_day << ", " << sell_day << endl;
+    return;
+}
+
+
 //DP w/ Memo
 void Alg3a(vector<vector<int>> A, int* stock, int* buy_day, int* sell_day) {
     int m = A.size();
@@ -99,7 +227,7 @@ void Alg3a(vector<vector<int>> A, int* stock, int* buy_day, int* sell_day) {
     //allocate the arrays
     int** dp = new int* [m];
     for (int i = 0; i < m; i++)
-        dp[i] = new int[n-1]{0};
+        dp[i] = new int[n - 1] {0};
 
     int max_profit = 0;
 
@@ -128,12 +256,12 @@ void Alg3a(vector<vector<int>> A, int* stock, int* buy_day, int* sell_day) {
 
             if (dp[i][j] > profit) {
                 profit = dp[i][j];
-                sell = j+1;
+                sell = j + 1;
                 buy = sell - count - 1;
             }
-            
+
         }
-    
+
         if (profit > max_profit) {
             max_profit = profit;
             //cout << "Max profit: " << max_profit << endl;
@@ -142,11 +270,77 @@ void Alg3a(vector<vector<int>> A, int* stock, int* buy_day, int* sell_day) {
             *sell_day = sell;
         }
     }
-    
+
     //deallocate array
     for (int i = 0; i < m; i++)
         delete[] dp[i];
     delete[] dp;
+}
+
+//DP w/ Memo LINUX WAY
+void Alg3a(string filename) {
+    vector<vector<int>> A = problem_one_file_to_vec(filename);
+    int m = A.size();
+    int n = A[0].size();
+    cout << "In algorithm 3A Dynamic programming with memoization" << endl;
+    //allocate the arrays
+    int** dp = new int* [m];
+    for (int i = 0; i < m; i++)
+        dp[i] = new int[n - 1] {0};
+
+    int max_profit = 0;
+    int stock = -1;
+    int buy_day = -1;
+    int sell_day = -1;
+
+    for (int i = 0; i < m; i++) {
+        //fill it with differences
+        for (int j = 0; j < n - 1; j++) {
+            dp[i][j] = A[i][j + 1] - A[i][j];
+        }
+
+        int profit = dp[i][0];
+        int buy = 0;
+        int sell = 1;
+        int count = 0;
+
+        //find maximum sum subarray 
+        //cout << dp[i][0] << " ";
+        for (int j = 1; j < n - 1; j++) {
+
+            if (dp[i][j - 1] > 0) {
+                dp[i][j] += dp[i][j - 1];
+                count += 1;
+            }
+            else {
+                count = 0;
+            }
+
+            if (dp[i][j] > profit) {
+                profit = dp[i][j];
+                sell = j + 1;
+                buy = sell - count - 1;
+            }
+
+        }
+
+        if (profit > max_profit) {
+            max_profit = profit;
+            //cout << "Max profit: " << max_profit << endl;
+            stock = i;
+            buy_day = buy;
+            sell_day = sell;
+        }
+    }
+
+    cout << stock << ", " << buy_day << ", " << sell_day << endl;
+
+    //deallocate array
+    for (int i = 0; i < m; i++)
+        delete[] dp[i];
+    delete[] dp;
+
+    return;
 }
 
 //DP Bottom UP 
@@ -201,6 +395,9 @@ void Alg3b(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day) {
     }
 }
 
+
+
+/// Part 2 
 
 vector<vector<int>> getSubsets(vector<int>& nums, int k) {
     vector<vector<int>> res;
@@ -278,7 +475,7 @@ void Alg5(vector<vector<int>> A, int k) {
     int stock = -1;
     int buy_day = 0;
     int sell_day = 1;
-    while (k > 0 ) {
+    while (k > 0) {
         if (sell_day == 0)
             break;
         Alg3b(A, &stock, &buy_day, &sell_day);
@@ -286,7 +483,7 @@ void Alg5(vector<vector<int>> A, int k) {
         //update the A matrix
         A[stock][buy_day] = 0;
         A[stock][sell_day] = 0;
-        for (int i = buy_day+1; i <= sell_day-1; i++)
+        for (int i = buy_day + 1; i <= sell_day - 1; i++)
             A[stock][i] = 0;
 
         print_A(A);
@@ -451,50 +648,6 @@ vector<pair<int, int>> Alg6(const vector<vector<int>>& prices, int k) {
     return bestTransactions;
 }
 
-//Test case functions
-vector<vector<int>> problem_one_file_to_vec(string filename) {
-    ifstream infile(filename);
-    vector<vector<int>> result;
-    string line;
-    int m, n;
-
-    // Read the first line to get m and n
-    getline(infile, line);
-    istringstream iss(line);
-    iss >> m >> n;
-
-    // Read each of the next m lines to get the n integers in each row
-    for (int i = 0; i < m; i++) {
-        vector<int> row;
-        getline(infile, line);
-        istringstream iss(line);
-        for (int j = 0; j < n; j++) {
-            int val;
-            iss >> val;
-            row.push_back(val);
-        }
-        result.push_back(row);
-    }
-
-    return result;
-}
-
-void problem_one_create_file(string filename, int m, int n) {
-    ofstream outfile(filename);
-    outfile << m << " " << n << endl;
-
-    // Generate and write m lines of n random integers each
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_int_distribution<> dist(1, 10000);
-
-    for (int i = 0; i < m; i++) {
-        for (int j = 0; j < n; j++) {
-            outfile << dist(gen) << " ";
-        }
-        outfile << std::endl;
-    }
-}
 
 
 int main() {
