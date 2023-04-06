@@ -8,8 +8,7 @@
 using namespace std;
 
 
-//herlper function
-
+//helper function
 void print_A(vector<vector<int>> A) {
     for (int i = 0; i < A.size(); i++) {
         for (int j = 0; j < A[i].size(); j++) {
@@ -17,7 +16,9 @@ void print_A(vector<vector<int>> A) {
         }
         cout << endl;
     }
+    cout << endl;
 }
+
 //Problem 1
 
 //Brute force O(m * n^2) WORKS
@@ -152,6 +153,7 @@ void Alg3a(vector<vector<int>> A, int* stock, int* buy_day, int* sell_day) {
 //DP Bottom UP 
 void Alg3b(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day) {
     //set m number of stocks with n number of days
+    cout << "In algorithm 3B Dynamic programming" << endl;
     int m = A.size();
     int n = A[0].size();
     //cout << "In 3B DP approach" << endl;
@@ -199,101 +201,129 @@ void Alg3b(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day) {
             *sell_day = sell;
         }
     }
+    if (profit == 0 || (*buy_day < 0 || *buy_day > n - 1) || (*sell_day < 1 && *sell_day > n)) {
+        //cout << "No viable stock to buy and sell" << endl;
+        *stock = -1;
+        return;
+    }
 }
 
 
-vector<vector<int>> getSubsets(vector<int>& nums, int k) {
+vector<vector<int>> combinations(int n, int k, vector<int>& nums) {
     vector<vector<int>> res;
-    sort(nums.begin(), nums.end());
-    for (int i = 2; i < k; i++) {
-        vector<int> subset;
-        for (int j = 0; j < nums.size(); j++) {
-            subset.push_back(nums[j]);
-            if (subset.size() == i) {
-                res.push_back(subset);
-                subset.pop_back();
-            }
-            else {
-                for (int k = j + 1; k < nums.size(); k++) {
-                    subset.push_back(nums[k]);
-                    if (subset.size() == i) {
-                        res.push_back(subset);
-                        subset.pop_back();
-                    }
-                }
-            }
-            subset.pop_back();
-        }
+    vector<int> curr;
+
+    // base case: if k is zero, return empty vector
+    if (k == 0) {
+        res.push_back(curr);
+        return res;
     }
+
+    // base case: if n is less than k, return empty vector
+    if (n < k) {
+        return res;
+    }
+
+    // recursive case 1: choose the first element
+    curr.push_back(nums[n - 1]);
+    vector<vector<int>> res1 = combinations(n - 1, k - 1, nums);
+
+    // append the current element to each combination
+    for (auto& c : res1) {
+        c.push_back(nums[n - 1]);
+        res.push_back(c);
+    }
+
+    // recursive case 2: don't choose the first element
+    curr.pop_back();
+    vector<vector<int>> res2 = combinations(n - 1, k, nums);
+
+    // append the combinations from recursive case 2 to the result
+    for (auto& c : res2) {
+        res.push_back(c);
+    }
+
     return res;
 }
-
-
-vector<vector<int>> get_2k_subset(vector<int> nums, int k) {
-    vector<vector<int>> subsets = { {} };
-    for (int i = 0; i < nums.size(); i++) {
-        int n = subsets.size();
-        for (int j = 0; j < n; j++) {
-            if (subsets[j].size() <= 2 * k) {
-                vector<int> subset = subsets[j];
-                subset.push_back(nums[i]);
-                subsets.push_back(subset);
-            }
-        }
-    }
-    return subsets;
-}
-
 
 void Alg4(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day, int k) {
     int m = A.size();
     int n = A[0].size();
     cout << "In algorithm 4" << endl;
-    //cout << "Vector size: " << m << "x" << n << endl;
     for (int i = 0; i < m; i++) {
-        vector<int> subset = {};
-        for (int j = 0; j < n; j++) {
-            subset.push_back(A[i][j]);
-        }
-        vector<vector<int>> subsets = get_2k_subset(subset, k);
-
-        //visualization
-        for (int i = 0; i < subsets.size(); i++) {
-            // Loop over the elements of the row
-            for (int j = 0; j < subsets[i].size(); j++) {
-                // Print the element
-                cout << subsets[i][j] << " ";
-            }
-            // Move to a new line after printing each row
-            cout << endl;
-        }
+        vector<vector<int>> res = combinations(n, k, A[i]);
+        // print the result
+        //for (auto& c : res) {
+        //    for (auto& i : c) {
+        //        cout << i << " ";
+        //    }
+        //    cout << endl;
+        //}
     }
 }
 
 
-void Alg5(vector<vector<int>> A, int k) {
+
+int computeProfit(vector<vector<int>>& A, vector<int>& transactions) {
+    int profit = 0;
+    int m = A.size();
+    int n = A[0].size();
+    int k = transactions.size() / 2;
+    for (int i = 0; i < k; i++) {
+        int buy = transactions[2 * i];
+        int sell = transactions[2 * i + 1];
+        if (A[0][buy] < A[0][sell]) {
+            profit += A[0][sell] - A[0][buy];
+        }
+    }
+    return profit;
+}
+
+int maxProfit(vector<vector<int>>& A, int k) {
+    int m = A.size();
+    int n = A[0].size();
+    int maxProfit = 0;
+    vector<int> transactions;
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i; j < n; j++) {
+            transactions.push_back(i);
+            transactions.push_back(j);
+            maxProfit = max(maxProfit, computeProfit(A, transactions));
+            transactions.pop_back();
+            transactions.pop_back();
+        }
+    }
+    return maxProfit;
+}
+
+void Alg5(vector<vector<int>>& A, int k) {
     cout << "In algo 5" << endl;
     int m = A.size();
     int n = A[0].size();
-    int stock = -1;
-    int buy_day = 0;
-    int sell_day = 1;
-    while (k > 0 ) {
-        if (sell_day == 0)
-            break;
-        Alg3b(A, &stock, &buy_day, &sell_day);
-        cout << stock << " " << buy_day << " " << sell_day << endl;
-        //update the A matrix
-        A[stock][buy_day] = 0;
-        A[stock][sell_day] = 0;
-        for (int i = buy_day+1; i <= sell_day-1; i++)
-            A[stock][i] = 0;
 
-        print_A(A);
-        k = k - 1;
+    vector<vector<vector<int>>> dp(m, vector<vector<int>>(n, vector<int>(k + 1, 0)));
+
+    for (int i = 0; i < m; ++i) {
+        for (int t = 1; t <= k; ++t) {
+            for (int j = 1; j < n; ++j) {
+                int maxProfit = 0;
+                for (int x = 0; x < j; ++x) {
+                    maxProfit = max(maxProfit, A[i][j] - A[i][x] + dp[i][x][t - 1]);
+                }
+                dp[i][j][t] = max(dp[i][j - 1][t], maxProfit);
+            }
+        }
     }
+
+    int result = 0;
+    for (int i = 0; i < m; ++i) {
+        result = max(result, dp[i][n - 1][k]);
+        cout << result << endl;
+    }
+
     return;
 }
+
 
 /*
 void Alg6(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day, int k) {
@@ -400,6 +430,31 @@ void Alg5(vector<vector<int>>& A, int k) {
 }
 */
 
+//Algo 6
+/*
+int maxProfit(vector<vector<int>>& A, int k) {
+    int m = A.size();
+    int n = A[0].size();
+    cout << "In algorithm 6" << endl;
+    if (k >= n / 2){
+        int ans = 0;
+        for (int i = 1; i < n; i++){
+            ans += max(0, A[0][i] - A[0][i - 1]);
+        }
+        return ans;
+    }
+    vector<vector<int>> dp(k + 1, vector<int>(n, 0));
+    for (int i = 1; i <= k; i++) {
+        int maxDiff = INT_MIN;
+        for (int j = 1; j < n; j++) {
+            maxDiff = max(maxDiff, dp[i - 1][j - 1] - A[0][j - 1]);
+            dp[i][j] = max(dp[i][j - 1], maxDiff + A[0][j]);
+        }
+    }
+    return dp[k][n - 1];
+}
+*/
+
 //DP approach with memoization
 vector<pair<int, int>> Alg6(const vector<vector<int>>& prices, int k) {
     int m = prices.size(), n = prices[0].size();
@@ -450,6 +505,7 @@ vector<pair<int, int>> Alg6(const vector<vector<int>>& prices, int k) {
     reverse(bestTransactions.begin(), bestTransactions.end());
     return bestTransactions;
 }
+
 
 //Test case functions
 vector<vector<int>> problem_one_file_to_vec(string filename) {
@@ -505,8 +561,8 @@ int main() {
 
     vector<vector<int>> A
     {
-        {6, 8, 22, 1},
-        {1, 0, 3, 8},
+        {0, 8, 3, 8},
+        {1, 0, 0, 9},
         {4, 5, 6, 10},
         {25, 8, 9, 1 }
     };
@@ -523,11 +579,12 @@ int main() {
     {
         {7, 6, 22, 1},
         {1, 0, 3, 8},
-        {8, 5, 100, 10},
+        {5, 7, 100, 10},
         {25, 8, 1, 100}
     };
 
     cout << "algos on A" << endl;
+    cout << maxProfit(A, 2) << endl;
     Alg1(A, &stock, &buy_day, &sell_day);
     cout << stock << " " << buy_day << " " << sell_day << endl;
     stock = -1;
@@ -548,6 +605,10 @@ int main() {
     stock = -1;
     buy_day = 0;
     sell_day = 1;
+    Alg4(B, &stock, &buy_day, &sell_day, 2);
+    stock = -1;
+    buy_day = 0;
+    sell_day = 1;
     Alg5(A, 2);
 
     stock = -1;
@@ -555,6 +616,7 @@ int main() {
     sell_day = 1;
 
     cout << "algos on B" << endl;
+    cout << maxProfit(B, 2) << endl;
     Alg1(B, &stock, &buy_day, &sell_day);
     cout << stock << " " << buy_day << " " << sell_day << endl;
     stock = -1;
@@ -575,7 +637,7 @@ int main() {
     stock = -1;
     buy_day = 0;
     sell_day = 1;
-    //Alg4(B, &stock, &buy_day, &sell_day, 2);
+    Alg4(B, &stock, &buy_day, &sell_day, 2);
     stock = -1;
     buy_day = 0;
     sell_day = 1;
@@ -583,7 +645,9 @@ int main() {
     stock = -1;
     buy_day = 0;
     sell_day = 1;
+
     cout << "algos on C" << endl;
+    cout << maxProfit(C, 2) << endl;
     Alg1(C, &stock, &buy_day, &sell_day);
     cout << stock << " " << buy_day << " " << sell_day << endl;
     stock = -1;
@@ -604,7 +668,10 @@ int main() {
     stock = -1;
     buy_day = 0;
     sell_day = 1;
-    //Alg4(C, &stock, &buy_day, &sell_day, 2);
+    Alg4(C, &stock, &buy_day, &sell_day, 2);
+    stock = -1;
+    buy_day = 0;
+    sell_day = 1;
     Alg5(C, 2);
     stock = -1;
     buy_day = 0;
