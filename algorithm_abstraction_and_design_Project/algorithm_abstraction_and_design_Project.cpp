@@ -457,255 +457,80 @@ void Alg3b(string filename) {
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
 /// Part 2 
-vector<vector<int>> getSubsets(vector<int>& nums, int k) {
-    vector<vector<int>> res;
-    sort(nums.begin(), nums.end());
-    for (int i = 2; i < k; i++) {
-        vector<int> subset;
-        for (int j = 0; j < nums.size(); j++) {
-            subset.push_back(nums[j]);
-            if (subset.size() == i) {
-                res.push_back(subset);
-                subset.pop_back();
-            }
-            else {
-                for (int k = j + 1; k < nums.size(); k++) {
-                    subset.push_back(nums[k]);
-                    if (subset.size() == i) {
-                        res.push_back(subset);
-                        subset.pop_back();
-                    }
-                }
-            }
-            subset.pop_back();
-        }
-    }
-    return res;
-}
 
-
-vector<vector<int>> get_2k_subset(vector<int> nums, int k) {
-    vector<vector<int>> subsets = { {} };
-    for (int i = 0; i < nums.size(); i++) {
-        int n = subsets.size();
-        for (int j = 0; j < n; j++) {
-            if (subsets[j].size() <= 2 * k) {
-                vector<int> subset = subsets[j];
-                subset.push_back(nums[i]);
-                subsets.push_back(subset);
-            }
-        }
-    }
-    return subsets;
-}
-
-
-void Alg4(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day, int k) {
-    int m = A.size();
-    int n = A[0].size();
-    cout << "In algorithm 4" << endl;
-    //cout << "Vector size: " << m << "x" << n << endl;
-    for (int i = 0; i < m; i++) {
-        vector<int> subset = {};
-        for (int j = 0; j < n; j++) {
-            subset.push_back(A[i][j]);
-        }
-        vector<vector<int>> subsets = get_2k_subset(subset, k);
-
-        //visualization
-        for (int i = 0; i < subsets.size(); i++) {
-            // Loop over the elements of the row
-            for (int j = 0; j < subsets[i].size(); j++) {
-                // Print the element
-                cout << subsets[i][j] << " ";
-            }
-            // Move to a new line after printing each row
-            cout << endl;
-        }
-    }
-}
-
+typedef pair<int, int> pii;
 
 void Alg5(vector<vector<int>> A, int k) {
     cout << "In algo 5" << endl;
     int m = A.size();
     int n = A[0].size();
-    int stock = -1;
-    int buy_day = 0;
-    int sell_day = 1;
-    while (k > 0) {
-        if (sell_day == 0)
+    vector<vector<int>> stocks(k + 1, vector<int>(n, -1));
+    vector<vector<int>> DP(k + 1, vector<int>(n, 0));
+    vector<vector<pii>> prev(k + 1, vector<pii>(n, make_pair(-1, -1)));
+    for (int i = 1; i <= k; i++) {
+        for (int j = 1; j < n; j++) {
+            int max_profit = 0;
+            int buy_day = -1, sell_day = -1;
+            int stock = -1;
+            for (int l = 0; l < j; l++) {
+                int max_diff = 0;
+                int c_stock = -1;
+                for (int p = 0; p < m; p++) {
+                    if (max_diff >= A[p][j] - A[p][l])
+                        max_diff = max_diff;
+                    else if (max_diff < A[p][j] - A[p][l]) {
+                        max_diff = A[p][j] - A[p][l];
+                        c_stock = p;
+                    }
+                }
+                int profit = DP[i - 1][l] + max_diff;
+                if (profit > max_profit) {
+                    max_profit = profit;
+                    buy_day = l;
+                    sell_day = j;
+                    stock = c_stock;
+                }
+            }
+
+            if (max_profit > DP[i][j - 1]) {
+                DP[i][j] = max_profit;
+                prev[i][j] = make_pair(buy_day, sell_day);
+                stocks[i][j] = stock;
+            }
+            else {
+                DP[i][j] = DP[i][j - 1];
+            }
+        }
+    }
+    //backtracking to find buy and sell days plus 
+    print_A(DP);
+
+    int total_profit = DP[k][n - 1];
+    vector<pii> res;
+    vector<int> stocky;
+    int i = k, j = n - 1;
+    while (i > 0 && j > 0) {
+        pii p = prev[i][j];
+        int stck = stocks[i][j];
+        if (p.first == -1 || p.second == -1) {
             break;
-        Alg3b(A, &stock, &buy_day, &sell_day);
-        cout << stock << " " << buy_day << " " << sell_day << endl;
-        //update the A matrix
-        A[stock][buy_day] = 0;
-        A[stock][sell_day] = 0;
-        for (int i = buy_day + 1; i <= sell_day - 1; i++)
-            A[stock][i] = 0;
-
-        print_A(A);
-        k = k - 1;
+        }
+        res.push_back(p);
+        stocky.push_back(stck);
+        i--;
+        j = p.first;
     }
+    reverse(res.begin(), res.end());
+    reverse(stocky.begin(), stocky.end());
+
+    for (int i = 0; i < k; i++) {
+        cout << stocky[i] << ", " << res[i].first << ", " << res[i].second << endl;
+    }
+
     return;
 }
 
-/*
-void Alg6(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day, int k) {
-    int B;
-    vector<int> A;
-    int dp[501][201][2];
-    int solve(int j, int i, int b){
-        // if the result has already been calculated return that result
-        if (dp[i][j][b] != -1)
-            return dp[i][j][b];
-        // if i has reached the end of the array return 0
-        if (i == B)
-            return 0;
-        // if we have exhausted the number of transaction return 0
-        if (j == 0)
-            return 0;
-        int res;
-        // if we are to buy stocks
-        if (b == 1)
-            res = max(-A[i] + solve(j, i + 1, 0), solve(j, i + 1, 1));
-        // if we are to sell stock and complete one transaction
-        else
-            res = max(A[i] + solve(j - 1, i + 1, 1), solve(j, i + 1, 0));
-        // return the result
-        return dp[i][j][b] = res;
-    }
-    int maxProfit(int K, int N, int C[])
-    {
-        A = vector<int>(N, 0);
-        // Copying C to global A
-        for (int i = 0; i < N; i++)
-            A[i] = C[i];
-        // Initializing DP with -1
-        for (int i = 0; i <= N; i++)
-            for (int j = 0; j <= K; j++)
-            {
-                dp[i][j][1] = -1;
-                dp[i][j][0] = -1;
-            }
-        // Copying n to global B
-        B = N;
-        return solve(K, 0, 1);
-    }
-}
-*/
-
-/*
-void Alg5(vector<vector<int>>& A, int k) {
-    int m = A.size();
-    int n = A[0].size();
-    int c = 0;
-    cout << "In algorithm 5 Dynamic programming O(m*n*n*k)" << endl;
-    //cout << "Vector size: " << m << "x" << n << endl;
-    //vector<vector<int>> trans(k + 1, vector<int>(n, 0));
-    //for visualization
-    while (c < k) {
-        int stock = 0;
-        int buy_day = 0;
-        int sell_day = 1;
-        int profit = 0;
-        for (int i = 0; i < m; i++) {
-            int buy = 0;
-            int sell = 0;
-            int current_profit = 0;
-
-            for (int j = 1; j < n; j++) {
-
-                if (A[i][j] < A[i][buy]) {
-                    buy = j;
-                }
-
-                if (A[i][j] - A[i][buy] > current_profit) {
-                    profit = A[i][j] - A[i][buy];
-                    sell = j;
-                }
-            }
-
-            if (current_profit > profit && buy < sell) {
-                profit = current_profit;
-                stock = i;
-                buy_day = buy;
-                sell_day = sell;
-            }
-        }
-        cout << stock << " " << buy_day << " " << sell_day << endl;
-        //Updating matrix A
-        // check if i is a valid index
-        if (stock < 0 || stock >= A.size()) {
-            cout << "Error: Invalid row index i" << endl;
-            return;
-        }
-        // check if a and b are valid indices
-        if (buy_day < 0 || sell_day < 0 || buy_day >= A[stock].size() || sell_day >= A[stock].size()) {
-            cout << "Error: Invalid indices a and b" << endl;
-            return;
-        }
-        // set the elements between index a and b to 0
-        for (int j = buy_day; j <= sell_day; j++) {
-            A[stock][j] = 0;
-        }
-        c += 1;
-    }
-    return;
-}
-*/
-
-//DP approach with memoization
-vector<pair<int, int>> Alg6(const vector<vector<int>>& prices, int k) {
-    int m = prices.size(), n = prices[0].size();
-    vector<vector<int>> dp(k + 1, vector<int>(n, 0));
-    vector<vector<pair<int, int>>> transactions(k + 1, vector<pair<int, int>>(n, { -1, -1 }));
-
-    for (int t = 1; t <= k; t++) {
-        for (int stock = 0; stock < m; stock++) {
-            int maxDiff = -prices[stock][0];
-            for (int day = 1; day < n; day++) {
-                int prevMaxDiff = maxDiff;
-                maxDiff = max(maxDiff, dp[t - 1][day - 1] - prices[stock][day]);
-                dp[t][day] = max(dp[t][day], prices[stock][day] + maxDiff);
-
-                if (dp[t][day] > dp[t][day - 1]) {
-                    transactions[t][day] = { stock, day };
-                }
-                else {
-                    transactions[t][day] = transactions[t][day - 1];
-                }
-            }
-        }
-    }
-    vector<pair<int, int>> bestTransactions;
-    int remainingTransactions = k;
-    int currentDay = n - 1;
-
-    while (remainingTransactions > 0 && currentDay > 0) {
-        if (transactions[remainingTransactions][currentDay] != transactions[remainingTransactions][currentDay - 1]) {
-            int buyDay = transactions[remainingTransactions][currentDay].second;
-            bestTransactions.push_back({ transactions[remainingTransactions][currentDay].first, buyDay });
-
-            for (int day = buyDay - 1; day >= 0; day--) {
-                if (dp[remainingTransactions - 1][day] == dp[remainingTransactions][buyDay] - prices[transactions[remainingTransactions][currentDay].first][buyDay]) {
-                    bestTransactions.push_back({ transactions[remainingTransactions][currentDay].first, day });
-                    currentDay = day;
-                    break;
-                }
-            }
-
-            remainingTransactions--;
-        }
-        else {
-            currentDay--;
-        }
-    }
-
-    reverse(bestTransactions.begin(), bestTransactions.end());
-    return bestTransactions;
-}
-
+ 
 
 
 int main() {
