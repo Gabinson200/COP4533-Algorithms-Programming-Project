@@ -5,6 +5,10 @@
 #include <algorithm>
 #include <random>
 #include <tuple>
+
+#include "functions.h"
+#include "tests.h"
+
 using namespace std;
 
 
@@ -54,8 +58,7 @@ vector<vector<int>> problem_two_file_to_vec(string filename, int* k) {
 
     // Read the first line to get k
     getline(infile, line);
-    istringstream iss(line);
-    iss >> *k;
+    *k = stoi(line);
     // Read the second line to get m and n
     getline(infile, line);
     istringstream bss(line);
@@ -396,6 +399,7 @@ void Alg3a(string filename) {
 //DP Bottom UP 
 void Alg3b(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day) {
     //set m number of stocks with n number of days
+    cout << "In algorithm 3B Dynamic programming " << endl;
     int m = A.size();
     int n = A[0].size();
     //cout << "In 3B DP approach" << endl;
@@ -447,6 +451,7 @@ void Alg3b(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day) {
 
 //DP Bottom UP LINUX WAY
 void Alg3b(string filename) {
+    cout << "In algorithm 3B Dynamic programming " << endl;
     vector<vector<int>> A = problem_one_file_to_vec(filename);
     //set m number of stocks with n number of days
     int m = A.size();
@@ -515,79 +520,6 @@ void Alg5(vector<vector<int>> A, int k) {
     cout << "In algo 5" << endl;
     int m = A.size();
     int n = A[0].size();
-    vector<vector<int>> stocks(k + 1, vector<int>(n, -1));
-    vector<vector<int>> DP(k + 1, vector<int>(n, 0));
-    vector<vector<pii>> prev(k + 1, vector<pii>(n, make_pair(-1, -1)));
-    for (int i = 1; i <= k; i++) {
-        for (int j = 1; j < n; j++) {
-            int max_profit = 0;
-            int buy_day = -1, sell_day = -1;
-            int stock = -1;
-            for (int l = 0; l < j; l++) {
-                int max_diff = 0;
-                int c_stock = -1;
-                for (int p = 0; p < m; p++) {
-                    if (max_diff >= A[p][j] - A[p][l])
-                        max_diff = max_diff;
-                    else if (max_diff < A[p][j] - A[p][l]) {
-                        max_diff = A[p][j] - A[p][l];
-                        c_stock = p;
-                    }
-                }
-                int profit = DP[i - 1][l] + max_diff;
-                if (profit > max_profit) {
-                    max_profit = profit;
-                    buy_day = l;
-                    sell_day = j;
-                    stock = c_stock;
-                }
-            }
-
-            if (max_profit > DP[i][j - 1]) {
-                DP[i][j] = max_profit;
-                prev[i][j] = make_pair(buy_day, sell_day);
-                stocks[i][j] = stock;
-            }
-            else {
-                DP[i][j] = DP[i][j - 1];
-            }
-        }
-    }
-    //backtracking to find stocks, buy, and sell days 
-    print_A(DP);
-
-    int total_profit = DP[k][n - 1];
-    vector<pii> res;
-    vector<int> stocky;
-    int i = k, j = n - 1;
-    while (i > 0 && j > 0) {
-        pii p = prev[i][j];
-        int stck = stocks[i][j];
-        if (p.first == -1 || p.second == -1) {
-            break;
-        }
-        res.push_back(p);
-        stocky.push_back(stck);
-        i--;
-        j = p.first;
-    }
-    reverse(res.begin(), res.end());
-    reverse(stocky.begin(), stocky.end());
-
-    for (int i = 0; i < stocky.size(); i++) {
-        cout << stocky[i] << ", " << res[i].first << ", " << res[i].second << endl;
-    }
-
-    return;
-}
-
-//DP (m x n^2 x k) LINUX WAY
-void Alg5(string filename) {
-    int k;
-    vector<vector<int>> A = problem_two_file_to_vec(filename, &k);
-    cout << "In algo 5" << endl;
-    int m = A.size();
-    int n = A[0].size();
     cout << "k: " << k << " m: " << m << " n: " << n << endl;
     vector<vector<int>> stocks(k + 1, vector<int>(n, -1));
     vector<vector<int>> DP(k + 1, vector<int>(n, 0));
@@ -628,31 +560,133 @@ void Alg5(string filename) {
         }
     }
     //backtracking to find stocks, buy, and sell days 
-    print_A(DP);
-
+    //print_A(DP);
+    //cout << endl << endl;
+    //print_A(stocks);
+    /*
+    for (int i = 0; i < prev.size(); i++) {
+        for (int j = 0; j < prev[i].size(); j++) {
+            cout << "(" << prev[i][j].first << ", " << prev[i][j].second << ") ";
+        }
+        cout << endl;
+    }
+    */
     int total_profit = DP[k][n - 1];
+    cout << "Total profit: " << total_profit << endl;
+
     vector<pii> res;
     vector<int> stocky;
-
     int i = k, j = n - 1;
-
     while (i > 0 && j > 0) {
         pii p = prev[i][j];
         int stck = stocks[i][j];
         if (p.first == -1 || p.second == -1) {
-            break;
+            //i--;
+            j--;
+            //break;
         }
-        res.push_back(p);
-        stocky.push_back(stck);
-        i--;
-        j = p.first;
+        else {
+            //cout << stck << " " << p.first << " " << p.second << endl;
+            res.push_back(p);
+            stocky.push_back(stck);
+            i--;
+            j = p.first;
+        }
     }
     reverse(res.begin(), res.end());
     reverse(stocky.begin(), stocky.end());
 
-    cout << "made it to here 2" << endl;
+    for (int i = 0; i < k; i++) {
+        cout << stocky[i] << ", " << res[i].first << ", " << res[i].second << endl;
+    }
 
-    for (int i = 0; i < stocky.size(); i++) {
+    return;
+}
+
+//DP (m x n^2 x k) LINUX WAY
+void Alg5(string filename) {
+    int k;
+    vector<vector<int>> A = problem_two_file_to_vec(filename, &k);
+    cout << "In algo 5" << endl;
+    int m = A.size();
+    int n = A[0].size();
+    //cout << "k: " << k << " m: " << m << " n: " << n << endl;
+    vector<vector<int>> stocks(k + 1, vector<int>(n, -1));
+    vector<vector<int>> DP(k + 1, vector<int>(n, 0));
+    vector<vector<pii>> prev(k + 1, vector<pii>(n, make_pair(-1, -1)));
+    for (int i = 1; i <= k; i++) {
+        for (int j = 1; j < n; j++) {
+            int max_profit = 0;
+            int buy_day = -1, sell_day = -1;
+            int stock = -1;
+            for (int l = 0; l < j; l++) {
+                int max_diff = 0;
+                int c_stock = -1;
+                for (int p = 0; p < m; p++) {
+                    if (max_diff >= A[p][j] - A[p][l])
+                        max_diff = max_diff;
+                    else if (max_diff < A[p][j] - A[p][l]) {
+                        max_diff = A[p][j] - A[p][l];
+                        c_stock = p;
+                    }
+                }
+                int profit = DP[i - 1][l] + max_diff;
+                if (profit > max_profit) {
+                    max_profit = profit;
+                    buy_day = l;
+                    sell_day = j;
+                    stock = c_stock;
+                }
+            }
+
+            if (max_profit > DP[i][j - 1]) {
+                DP[i][j] = max_profit;
+                prev[i][j] = make_pair(buy_day, sell_day);
+                stocks[i][j] = stock;
+            }
+            else {
+                DP[i][j] = DP[i][j - 1];
+            }
+        }
+    }
+    //backtracking to find stocks, buy, and sell days 
+    //print_A(DP);
+    //cout << endl << endl;
+    //print_A(stocks);
+    /*
+    for (int i = 0; i < prev.size(); i++) {
+        for (int j = 0; j < prev[i].size(); j++) {
+            cout << "(" << prev[i][j].first << ", " << prev[i][j].second << ") ";
+        }
+        cout << endl;
+    }
+    */
+    int total_profit = DP[k][n - 1];
+    //cout << "Total profit: " << total_profit << endl;
+
+    vector<pii> res;
+    vector<int> stocky;
+    int i = k, j = n - 1;
+    while (i > 0 && j > 0) {
+        pii p = prev[i][j];
+        int stck = stocks[i][j];
+        if (p.first == -1 || p.second == -1) {
+            //i--;
+            j--;
+            //break;
+        }
+        else {
+            //cout << stck << " " << p.first << " " << p.second << endl;
+            res.push_back(p);
+            stocky.push_back(stck);
+            i--;
+            j = p.first;
+        }
+    }
+    reverse(res.begin(), res.end());
+    reverse(stocky.begin(), stocky.end());
+
+    for (int i = 0; i < k; i++) {
         cout << stocky[i] << ", " << res[i].first << ", " << res[i].second << endl;
     }
 
@@ -660,8 +694,23 @@ void Alg5(string filename) {
 }
 
 
-
 int main() {
+
+    plot1();
+    plot2();
+
+
+
+
+
+
+
+
+
+
+
+
+
     //Declare variables
     int stock = -1;
     int buy_day = 0;
@@ -690,7 +739,7 @@ int main() {
         {8, 5, 100, 10},
         {25, 8, 1, 100}
     };
-
+    
     cout << "algos on A" << endl;
     Alg1(A, &stock, &buy_day, &sell_day);
     cout << stock << " " << buy_day << " " << sell_day << endl;
@@ -803,13 +852,12 @@ int main() {
     }
 
     for (int i = 0; i < 3; i++) {
-        cout << endl << "NOW TESTING P2 WITH READ FILE FUNCTION AND RANDOMLY GENERATED VALUES 10 by 20" << endl;
+        cout << endl << "NOW TESTING P2 WITH READ FILE FUNCTION AND RANDOMLY GENERATED VALUES 10 by 30 and k value of 3" << endl;
 
-        problem_two_create_file("P2_10_20.txt", 3, 10, 20);
+        problem_two_create_file("P2_10_30.txt", 3, 10, 30);
         //vector<vector<int>> P1_10_20 = problem_one_file_to_vec("P1_10_20.txt");
 
-        Alg5("P5_10_20.txt");
-        
+        Alg5("P2_10_30.txt");
     }
 
     return 0;
