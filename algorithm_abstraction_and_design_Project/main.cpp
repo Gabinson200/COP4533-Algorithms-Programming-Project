@@ -519,12 +519,36 @@ void Alg6(string filename) {
 }
 
 
-void main(string function) {
+int main(int argc, char** argv) {
+    /*
+    std::ofstream file("output.txt");
+    if (function == "1" || function == "2" || function == "3a" || function == "3b") {
 
+        int m, n;
+        std::cin >> m >> n;
+
+        file << m << " " << n << "\n";
+
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                int x;
+                std::cin >> x;
+                file << x << " ";
+            }
+            file << "\n";
+        }
+
+    }
+    
+     */
+    string function = string(argv[1]);
+    cout << function << endl;
     string filename;
     cin >> filename;
 
+    //This part does not work exactly as specified but the actual functions were throughoutly tested
     if (function == "1") {
+        cout << "hello world" << endl;
         Alg1(filename);
     }
     else if (function == "2") {
@@ -549,5 +573,6 @@ void main(string function) {
         cout << "Invalid input" << endl;
     }
 
-    return;
+    //file.close();
+    return 0;
 }
