@@ -5,6 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <random>
+#include <queue>
 #include <tuple>
 using namespace std;
 
@@ -33,8 +34,13 @@ void Alg3b(vector<vector<int>>& A, int* stock, int* buy_day, int* sell_day);
 void Alg3b(string filename);
 
 //Problem 2 functions
+void get_greatest_profits(vector<vector<int>> A, int k, int begin, vector<vector<vector<int>>>& combos, vector<vector<int>>& combo, vector<vector<int>>& trans, int& max_profit);
+void Alg4(vector<vector<int>> A, int k);
+void Alg4(string filename);
 
 typedef pair<int, int> pii;
 void Alg5(vector<vector<int>> A, int k);
 void Alg5(string filename);
+
+void Alg6(string filename);
 

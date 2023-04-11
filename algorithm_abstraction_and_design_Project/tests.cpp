@@ -105,6 +105,119 @@ void plot2() {
 }
 
 
-void plot3();
-void plot4();
-void plot5();
+void plot3() {
+	cout << endl << "DATA FOR PLOT 3 -----------------------" << endl;
+	int m = 5;
+	int k = 2;
+	int ns[] = { 5, 10, 15, 20, 25};
+	vector<float> run_times;
+
+	for (int i = 0; i < 5; i++) {
+		string f_name = "P2_" + to_string(m) + "_" + to_string(ns[i]);
+
+		problem_two_create_file(f_name, k, m, ns[i]);
+
+		run_times.push_back(measureTime([&]() {
+			Alg4(f_name);
+			}));
+
+		run_times.push_back(measureTime([&]() {
+			Alg5(f_name);
+			}));
+
+		run_times.push_back(measureTime([&]() {
+			Alg6(f_name);
+			}));
+
+
+		cout << endl << f_name << ": " << endl;
+		for (int i = 0; i < run_times.size(); i++) {
+			cout << run_times[i] << " ";
+		}
+		cout << endl << endl;
+		run_times.clear();
+
+		char* charPtr = const_cast<char*>(f_name.c_str());
+		remove(charPtr);
+	}
+	cout << "--------------------------------" << endl;
+	return;
+}
+
+void plot4() {
+	cout << endl << "DATA FOR PLOT 4 -----------------------" << endl;
+	int n = 10;
+	int k = 2;
+	int ms[] = { 10, 20, 30, 40, 50 };
+	vector<float> run_times;
+
+	for (int i = 0; i < 5; i++) {
+		string f_name = "P1_" + to_string(ms[i]) + "_" + to_string(n);
+
+		problem_two_create_file(f_name, k, ms[i], n);
+
+		run_times.push_back(measureTime([&]() {
+			Alg4(f_name);
+			}));
+
+		run_times.push_back(measureTime([&]() {
+			Alg5(f_name);
+			}));
+
+		run_times.push_back(measureTime([&]() {
+			Alg6(f_name);
+			}));
+
+
+		cout << endl << f_name << ": " << endl;
+		for (int i = 0; i < run_times.size(); i++) {
+			cout << run_times[i] << " ";
+		}
+		cout << endl << endl;
+		run_times.clear();
+
+		char* charPtr = const_cast<char*>(f_name.c_str());
+		remove(charPtr);
+	}
+	cout << "--------------------------------" << endl;
+	return;
+}
+
+void plot5() {
+	cout << endl << "DATA FOR PLOT 5 -----------------------" << endl;
+	int n = 10;
+	int ks[] = { 1, 20, 30, 40, 50 };
+	int m = 10;
+	vector<float> run_times;
+
+	for (int i = 0; i < 5; i++) {
+		string f_name = "P1_" + to_string(m) + "_" + to_string(n);
+
+		problem_two_create_file(f_name, ks[i], m, n);
+
+		run_times.push_back(measureTime([&]() {
+			Alg4(f_name);
+			}));
+
+		run_times.push_back(measureTime([&]() {
+			Alg5(f_name);
+			}));
+
+		run_times.push_back(measureTime([&]() {
+			Alg6(f_name);
+			}));
+
+
+		cout << endl << f_name << ": " << endl;
+		for (int i = 0; i < run_times.size(); i++) {
+			cout << run_times[i] << " ";
+		}
+		cout << endl << endl;
+		run_times.clear();
+
+		char* charPtr = const_cast<char*>(f_name.c_str());
+		remove(charPtr);
+	}
+	cout << "--------------------------------" << endl;
+	return;
+}

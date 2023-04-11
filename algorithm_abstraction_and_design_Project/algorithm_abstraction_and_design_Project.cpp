@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <random>
 #include <tuple>
+#include <queue>
 
 #include "functions.h"
 #include "tests.h"
@@ -189,7 +190,7 @@ void Alg1(string filename) {
             sell_day = sell;
         }
     }
-    cout << stock << ", " << buy_day << ", " << sell_day << endl;
+    cout << stock << " " << buy_day << " " << sell_day << endl;
     return;
 }
 
@@ -268,7 +269,7 @@ void Alg2(string filename) {
             sell_day = sell_pos;
         }
     }
-    cout << stock << ", " << buy_day << ", " << sell_day << endl;
+    cout << stock << " " << buy_day << " " << sell_day << endl;
     return;
 }
 
@@ -386,7 +387,7 @@ void Alg3a(string filename) {
         }
     }
 
-    cout << stock << ", " << buy_day << ", " << sell_day << endl;
+    cout << stock << " " << buy_day << " " << sell_day << endl;
 
     //deallocate array
     for (int i = 0; i < m; i++)
@@ -504,7 +505,7 @@ void Alg3b(string filename) {
             sell_day = sell;
         }
     }
-    cout << stock << ", " << buy_day << ", " << sell_day << endl;
+    cout << stock << " " << buy_day << " " << sell_day << endl;
 
     return;
 }
@@ -512,6 +513,83 @@ void Alg3b(string filename) {
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
 /// Part 2 
+
+
+//recursive function used by Algo 4
+void get_greatest_profits(vector<vector<int>> A, int k, int begin,
+    vector<vector<vector<int>>>& combos, vector<vector<int>>& combo,
+    vector<vector<int>>& trans, int& max_profit) {
+    int m = A.size();
+    int n = A[0].size();
+    
+
+    if (k == 0) {
+        combos.push_back(combo);
+        int total_profit = 0;
+        for (int i = 0; i < combo.size(); i++) {
+            int stock = combo[i][0];
+            int buy = combo[i][1];
+            int sell = combo[i][2];
+
+            if (A[stock][sell] - A[stock][buy] > 0)
+                total_profit += A[stock][sell] - A[stock][buy];
+        }
+
+        if (total_profit > max_profit) {
+            max_profit = total_profit;
+            trans.clear();
+
+            for (int g = 0; g < combo.size(); g++) {
+                if (A[combo[g][0]][combo[g][2]] - A[combo[g][0]][combo[g][1]] > 0)
+                    trans.push_back(combo[g]);
+            }
+        }
+        return;
+    }
+
+    //cout << "works up unitl here" << endl;
+    for (int i = begin; i < n; ++i){
+        for (int j = i + 1; j < n; ++j) {
+            for (int l = 0; l < m; ++l) {
+                //cout << l << " " << i << " " << j << endl;
+                vector<int> v = {l, i, j};
+                combo.push_back(v);
+                get_greatest_profits(A, k - 1, j, combos, combo, trans, max_profit);
+                //cout << "didnt reach this" << endl;
+                combo.pop_back();
+            }
+        }
+    }
+}
+
+
+//Algo4 (m * (n chose k))
+void Alg4(vector<vector<int>> A, int k) {
+    cout << "In Algo 4" << endl;
+    int begin = 0;
+    vector<vector<vector<int>>> combos;
+    vector<vector<int>> combo;
+    vector<vector<int>> trans;
+    int max_profit;
+    get_greatest_profits(A, k, begin, combos, combo, trans, max_profit);
+    print_A(trans);
+    return; 
+}
+
+//Algo4 (m * (n chose k))
+void Alg4(string filename) {
+    int k;
+    vector<vector<int>> A = problem_two_file_to_vec(filename, &k);
+    cout << "In Algo 4" << endl;
+    int begin = 0;
+    vector<vector<vector<int>>> combos;
+    vector<vector<int>> combo;
+    vector<vector<int>> trans;
+    int max_profit;
+    get_greatest_profits(A, k, begin, combos, combo, trans, max_profit);
+    print_A(trans);
+    return;
+}
 
 typedef pair<int, int> pii;
 
@@ -649,18 +727,7 @@ void Alg5(string filename) {
             }
         }
     }
-    //backtracking to find stocks, buy, and sell days 
-    //print_A(DP);
-    //cout << endl << endl;
-    //print_A(stocks);
-    /*
-    for (int i = 0; i < prev.size(); i++) {
-        for (int j = 0; j < prev[i].size(); j++) {
-            cout << "(" << prev[i][j].first << ", " << prev[i][j].second << ") ";
-        }
-        cout << endl;
-    }
-    */
+    
     int total_profit = DP[k][n - 1];
     //cout << "Total profit: " << total_profit << endl;
 
@@ -671,9 +738,7 @@ void Alg5(string filename) {
         pii p = prev[i][j];
         int stck = stocks[i][j];
         if (p.first == -1 || p.second == -1) {
-            //i--;
             j--;
-            //break;
         }
         else {
             //cout << stck << " " << p.first << " " << p.second << endl;
@@ -687,23 +752,100 @@ void Alg5(string filename) {
     reverse(stocky.begin(), stocky.end());
 
     for (int i = 0; i < k; i++) {
-        cout << stocky[i] << ", " << res[i].first << ", " << res[i].second << endl;
+        cout << stocky[i] << " " << res[i].first << " " << res[i].second << endl;
     }
 
     return;
 }
 
+//DP with memoization (m * n *k)
+void Alg6(string filename) {
+    int k;
+    vector<vector<int>> A = problem_two_file_to_vec(filename, &k);
+    cout << "In algo 6" << endl;
+    int m = A.size();
+    int n = A[0].size();
+    //cout << "k: " << k << " m: " << m << " n: " << n << endl;
+    vector<vector<int>> stocks(k + 1, vector<int>(n, -1));
+    vector<vector<int>> DP(k + 1, vector<int>(n, 0));
+    vector<vector<pii>> prev(k + 1, vector<pii>(n, make_pair(-1, -1)));
+    for (int i = 1; i <= k; i++) {
+        for (int j = 1; j < n; j++) {
+            int max_profit = 0;
+            int buy_day = -1, sell_day = -1;
+            int stock = -1;
+            for (int l = 0; l < j; l++) {
+                int max_diff = 0;
+                int c_stock = -1;
+                for (int p = 0; p < m; p++) {
+                    if (max_diff >= A[p][j] - A[p][l])
+                        max_diff = max_diff;
+                    else if (max_diff < A[p][j] - A[p][l]) {
+                        max_diff = A[p][j] - A[p][l];
+                        c_stock = p;
+                    }
+                }
+                int profit = DP[i - 1][l] + max_diff;
+                if (profit > max_profit) {
+                    max_profit = profit;
+                    buy_day = l;
+                    sell_day = j;
+                    stock = c_stock;
+                }
+            }
+
+            if (max_profit > DP[i][j - 1]) {
+                DP[i][j] = max_profit;
+                prev[i][j] = make_pair(buy_day, sell_day);
+                stocks[i][j] = stock;
+            }
+            else {
+                DP[i][j] = DP[i][j - 1];
+            }
+        }
+    }
+
+    int total_profit = DP[k][n - 1];
+    //cout << "Total profit: " << total_profit << endl;
+
+    vector<pii> res;
+    vector<int> stocky;
+    int i = k, j = n - 1;
+    while (i > 0 && j > 0) {
+        pii p = prev[i][j];
+        int stck = stocks[i][j];
+        if (p.first == -1 || p.second == -1) {
+            j--;
+        }
+        else {
+            //cout << stck << " " << p.first << " " << p.second << endl;
+            res.push_back(p);
+            stocky.push_back(stck);
+            i--;
+            j = p.first;
+        }
+    }
+    reverse(res.begin(), res.end());
+    reverse(stocky.begin(), stocky.end());
+
+    for (int i = 0; i < k; i++) {
+        cout << stocky[i] << " " << res[i].first << " " << res[i].second << endl;
+    }
+
+    return;
+
+}
+
+
+
 
 int main() {
 
-    plot1();
-    plot2();
-
-
-
-
-
-
+    //plot1();
+    //plot2();
+    //plot3();
+    //plot4();
+    //plot5();
 
 
 
@@ -758,6 +900,7 @@ int main() {
     sell_day = 1;
     Alg3b(A, &stock, &buy_day, &sell_day);
     cout << stock << " " << buy_day << " " << sell_day << endl;
+    Alg4(A, 2);
     stock = -1;
     buy_day = 0;
     sell_day = 1;
@@ -788,7 +931,7 @@ int main() {
     stock = -1;
     buy_day = 0;
     sell_day = 1;
-    //Alg4(B, &stock, &buy_day, &sell_day, 2);
+    Alg4(B, 2);
     stock = -1;
     buy_day = 0;
     sell_day = 1;
@@ -817,7 +960,7 @@ int main() {
     stock = -1;
     buy_day = 0;
     sell_day = 1;
-    //Alg4(C, &stock, &buy_day, &sell_day, 2);
+    Alg4(C, 2);
     Alg5(C, 2);
     stock = -1;
     buy_day = 0;
@@ -837,6 +980,7 @@ int main() {
     Alg3b("P1_5_10.txt");
 
     cout << endl << "NOW TESTING P2 WITH READ FILE FUNCTION AND RANDOMLY GENERATED VALUES 5 by 10" << endl;
+    Alg4("P2_5_10.txt");
     Alg5("P2_5_10.txt");
 
     for (int i = 0; i < 3; i++) {
@@ -851,14 +995,14 @@ int main() {
         Alg3b("P1_10_20.txt");
     }
 
-    for (int i = 0; i < 3; i++) {
-        cout << endl << "NOW TESTING P2 WITH READ FILE FUNCTION AND RANDOMLY GENERATED VALUES 10 by 30 and k value of 3" << endl;
+    //for (int i = 0; i < 3; i++) {
+    cout << endl << "NOW TESTING P2 WITH READ FILE FUNCTION AND RANDOMLY GENERATED VALUES 10 by 20 and k value of 3" << endl;
 
-        problem_two_create_file("P2_10_30.txt", 3, 10, 30);
+    problem_two_create_file("P2_10_20.txt", 2, 10, 20);
         //vector<vector<int>> P1_10_20 = problem_one_file_to_vec("P1_10_20.txt");
-
-        Alg5("P2_10_30.txt");
-    }
+    Alg4("P2_10_20.txt");
+    Alg5("P2_10_20.txt");
+    //}
 
     return 0;
 }
