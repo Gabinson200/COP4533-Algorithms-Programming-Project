@@ -146,9 +146,9 @@ void plot3() {
 
 void plot4() {
 	cout << endl << "DATA FOR PLOT 4 -----------------------" << endl;
-	int n = 10;
+	int n = 5;
 	int k = 2;
-	int ms[] = { 10, 20, 30, 40, 50 };
+	int ms[] = { 5, 10, 15, 20, 25 };
 	vector<float> run_times;
 
 	for (int i = 0; i < 5; i++) {
@@ -186,8 +186,8 @@ void plot4() {
 void plot5() {
 	cout << endl << "DATA FOR PLOT 5 -----------------------" << endl;
 	int n = 10;
-	int ks[] = { 1, 20, 30, 40, 50 };
-	int m = 10;
+	int ks[] = { 1, 2, 3, 4, 5 };
+	int m = 5;
 	vector<float> run_times;
 
 	for (int i = 0; i < 5; i++) {
